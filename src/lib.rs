@@ -26,7 +26,16 @@ pub mod pallet {
         /// The maximum balance of an account
         #[pallet::constant]
         type MaxBalance: Get<BalanceOf<Self>>;
+
+        /// The minimum interval in blocks between mints
+        #[pallet::constant]
+        type MinInterval: Get<Self::BlockNumber>;
     }
+
+    /// The last mint timestamp for an account
+    #[pallet::storage]
+    pub type LastMint<T: Config> =
+        StorageMap<_, Blake2_128Concat, T::AccountId, T::BlockNumber, OptionQuery>;
 
     #[pallet::event]
     #[pallet::generate_deposit(fn deposit_event)]
@@ -41,6 +50,9 @@ pub mod pallet {
     pub enum Error<T> {
         /// Balance exceed `MaxBalance`
         HighBalance,
+
+        /// `MinInterval` had not passed since the last mint
+        RecentlyMinted,
     }
 
     #[pallet::call]
@@ -49,6 +61,14 @@ pub mod pallet {
         pub fn mint(origin: OriginFor<T>) -> DispatchResult {
             let origin = ensure_signed(origin)?;
 
+            let current_block = frame_system::Pallet::<T>::block_number();
+            if let Some(minted_at) = LastMint::<T>::get(&origin) {
+                ensure!(
+                    current_block >= minted_at + T::MinInterval::get(),
+                    Error::<T>::RecentlyMinted
+                );
+            }
+
             let balance = T::Currency::free_balance(&origin);
             let max_balance = T::MaxBalance::get();
             ensure!(balance < max_balance, Error::<T>::HighBalance);
@@ -56,6 +76,8 @@ pub mod pallet {
             let amount = max_balance - balance;
 
             T::Currency::deposit_creating(&origin, amount);
+
+            LastMint::<T>::insert(&origin, current_block);
 
             Self::deposit_event(Event::Minted {
                 who: origin,

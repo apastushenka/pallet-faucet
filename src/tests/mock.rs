@@ -1,6 +1,6 @@
 use crate as pallet_faucet;
 use frame_support::parameter_types;
-use sp_core::{ConstU128, ConstU32, H256};
+use sp_core::{ConstU128, ConstU32, ConstU64, H256};
 use sp_runtime::{
     testing::Header,
     traits::{BlakeTwo256, IdentityLookup},
@@ -9,6 +9,7 @@ use sp_runtime::{
 pub const ALICE: u64 = 1;
 pub const EXISTENTIAL_DEPOSIT: u128 = 500;
 pub const MAX_BALANCE: u128 = 2_000;
+pub const MIN_INTERVAL: u64 = 16;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<TestRuntime>;
 type Block = frame_system::mocking::MockBlock<TestRuntime>;
@@ -77,6 +78,7 @@ impl pallet_faucet::Config for TestRuntime {
     type RuntimeEvent = RuntimeEvent;
     type Currency = Balances;
     type MaxBalance = ConstU128<MAX_BALANCE>;
+    type MinInterval = ConstU64<MIN_INTERVAL>;
 }
 
 #[derive(Default)]
