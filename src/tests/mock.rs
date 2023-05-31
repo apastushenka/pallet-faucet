@@ -48,7 +48,7 @@ impl frame_system::Config for TestRuntime {
     type Index = u64;
     type Lookup = IdentityLookup<Self::AccountId>;
     type MaxConsumers = frame_support::traits::ConstU32<16>;
-    type OnKilledAccount = ();
+    type OnKilledAccount = Faucet;
     type OnNewAccount = ();
     type OnSetCode = ();
     type RuntimeOrigin = RuntimeOrigin;

@@ -10,7 +10,7 @@ pub mod pallet {
     use frame_support::pallet_prelude::*;
     use frame_system::pallet_prelude::*;
 
-    use frame_support::traits::Currency;
+    use frame_support::traits::{Currency, OnKilledAccount};
 
     type BalanceOf<T> =
         <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
@@ -85,6 +85,12 @@ pub mod pallet {
             });
 
             Ok(())
+        }
+    }
+
+    impl<T: Config> OnKilledAccount<T::AccountId> for Pallet<T> {
+        fn on_killed_account(who: &T::AccountId) {
+            LastMint::<T>::remove(who);
         }
     }
 }

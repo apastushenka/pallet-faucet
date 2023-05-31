@@ -43,6 +43,16 @@ fn mint_twice() {
 }
 
 #[test]
+fn clean_dead_account() {
+    ExtBuilder::default().build().execute_with(|| {
+        let _ = Faucet::mint(RuntimeOrigin::signed(ALICE));
+        let _ = Balances::force_set_balance(RuntimeOrigin::root(), ALICE, 0);
+
+        assert_eq!(LastMint::<TestRuntime>::get(ALICE), None);
+    })
+}
+
+#[test]
 fn must_be_signed() {
     ExtBuilder::default().build().execute_with(|| {
         assert_noop!(Faucet::mint(RuntimeOrigin::none()), BadOrigin);
